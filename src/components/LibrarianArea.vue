@@ -54,6 +54,11 @@ const ajouterLivre = () => {
   height: 100%;
   max-height: 100vh;
 }
+@media screen and (min-width: 360px) and (max-width: 1024px) {
+  .actions-area{
+    display: none;
+  }
+}
 .input {
   height: 32px;
   width: 75%;

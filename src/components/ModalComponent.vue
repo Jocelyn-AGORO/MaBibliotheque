@@ -88,7 +88,6 @@ const incrementQuantite = () => {
   background-color: #424242;
   color: #868686;
   z-index: 100;
-  align-self: flex-start;
 }
 @media screen and (max-width: 740px) {
   .modal{
@@ -96,15 +95,12 @@ const incrementQuantite = () => {
     --height: 270px;
     /*margin: auto;*/
     position: relative;
-    top: calc(calc(100% - 300px)/2);
-    left: calc(calc(100% - 500px)/2);
     width: var(--width);
     height: var(--height);
     border-radius: 15px;
     background-color: #424242;
     color: #868686;
     z-index: 100;
-    align-self: flex-start;
   }
 }
 .book{

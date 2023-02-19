@@ -1,6 +1,18 @@
 <template>
   <div class="shelf-area">
     <h1 class="heading">Ma Bibliothèque</h1>
+    <!--Rechercher un livre sur les écrans à taille moyenne -->
+    <div class="search">
+      <SearchBook />
+    </div>
+    <!--Ajouter un livre sur les écrans à taille moyenne -->
+    <div class="add-book-medium">
+      <button class="new-book" @click="isMedium=true">
+        <IconBook />
+        Nouveau Livre
+      </button>
+    </div>
+    <!--Changer la présentation de l'affichage grille ou liste -->
     <div class="books-view">
       <IconList @click="changeView('list')" />
       <IconGrid @click="changeView('grid')" />
@@ -11,14 +23,6 @@
                        :livre="livre"
                        :layout="layout"
                        @click="toggleModal(livre)"
-                       @selected="selectedItem(livre)"
-                       @delete="deleteBook"
-                       @decrement="updateQuantite"
-                       @increment="incrementQuantite"/>
-        <BookComponent v-for="livre of livres"
-                       :key="`2${livre.id}`"
-                       :livre="livre"
-                       :layout="layout"
                        @selected="selectedItem(livre)"
                        @delete="deleteBook"
                        @decrement="updateQuantite"
@@ -36,6 +40,8 @@
                     @delete="deleteBook"
                     @decrement="updateQuantite"
                     @increment="incrementQuantite"/>
+    <ModalForm v-if="isMedium"
+               @closemedium="isMedium=false"/>
   </div>
 </template>
 
@@ -43,20 +49,25 @@
 import {reactive, ref, onMounted, inject} from "vue";
 import { useFetch } from '@vueuse/core'
 import ModalComponent from "../components/ModalComponent.vue"
+import ModalForm from "../components/ModalForm.vue"
 import BookComponent from "../components/BookComponent.vue"
+import SearchBook from "../components/SearchBook.vue"
 import IconGrid from "./icons/IconGrid.vue"
 import IconList from "./icons/IconList.vue"
+import IconBook from "./icons/IconBook.vue"
 
 // url de l'api
 const url = "https://webmmi.iut-tlse3.fr/~pecatte/librairies/public/2/livres"
 // mode d'affichage des livres
 const layout = ref('grid')
 // valeur de la propriété grid du css selon le layout
-const template_view = ref('repeat(6,1fr)')
+const template_view = ref(6)
 // livre selectionné
 let livreSelected = reactive({})
 // si le modal est visible
 const isOpen = ref(false)
+// si le support a un écran de taille moyenne
+const isMedium = ref(false)
 // liste des livres
 const livres = reactive([])
 // si les données sont en chargement
@@ -69,9 +80,9 @@ const emitter = inject('emitter')
 const changeView = (view_mode) => {
   layout.value = view_mode
   if( view_mode === 'grid') {
-    template_view.value = "repeat(6,1fr)"
+    template_view.value = 6
   }else {
-    template_view.value = "1fr"
+    template_view.value = 1
   }
 }
 // Ouvrir le modal
@@ -181,6 +192,10 @@ const updateQuantite = () => {
   if(!error.value){
     // décrémenter s'il n'y a pas eu d'erreur
     livreSelected.qtestock -= 1
+    // Si la quantité est nulle, on supprime le livre
+    if(livreSelected.qtestock === 0 ){
+      deleteBook()
+    }
     // recharger la bibliothèque
     emitter.emit('remove')
     reloadBooks()
@@ -216,11 +231,14 @@ const incrementQuantite = () => {
 // résoudre l'évènement search émit lors de la recherche
 emitter.on('search', actualSearch)
 // recharge la liste des livre après un ajout
-emitter.on('addbook', reloadBooks)
+emitter.on('addbook', () => {
+  setTimeout(reloadBooks, 125)
+})
 </script>
 
 <style scoped>
 .shelf-area{
+  --breakpoint: 'grid';
   background-color: rgba(32,33,35,1);
   height: 100vh;
   max-height: 100vh;
@@ -229,11 +247,49 @@ emitter.on('addbook', reloadBooks)
   overflow-y: scroll;
   max-width: 100%;
 }
-.shelf{
-  display:grid;
-  grid-template-columns: v-bind(template_view);
-  gap:10px;
-  color: #b2acac;
+
+@media screen and (min-width: 768px) and (min-width: 1024px) {
+  .shelf{
+    --fraction: v-bind(template_view);
+    display:grid;
+    grid-template-columns: repeat(var(--fraction), 1fr);
+    gap:10px;
+    color: #b2acac;
+  }
+}
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  .shelf{
+    --fraction: v-bind(template_view);
+    display:grid;
+    grid-template-columns: repeat(var(--fraction), 1fr);
+    gap:10px;
+    color: #b2acac;
+  }
+}
+@media screen and (max-width: 768px) {
+  .shelf{
+    display:grid;
+    grid-template-columns: repeat(max(1, calc(v-bind(template_view) - 1)), 1fr);
+    gap:10px;
+    color: #b2acac;
+  }
+}
+@media screen and (min-width: 360px) and (max-width: 640px) {
+  .shelf{
+    display:grid;
+    grid-template-columns: repeat(max(1, calc(v-bind(template_view) - 2)), 1fr);
+    gap:10px;
+    color: #b2acac;
+    width: 100vw;
+  }
+}
+@media screen and (max-width: 425px) {
+  .shelf{
+    display:grid;
+    grid-template-columns: repeat(max(1, calc(v-bind(template_view) - 3)), 1fr);
+    gap:10px;
+    color: #b2acac;
+  }
 }
 .books-view {
   display:flex;
@@ -282,12 +338,29 @@ emitter.on('addbook', reloadBooks)
   width: 100%;
   margin: 10px 0px;
 }
-@media screen and (max-width: 740px) {
-  .shelf{
-    display:grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap:10px;
-    color: #b2acac;
+.add-book-medium{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 5px 0px;
+}
+.new-book{
+  display: none;
+}
+.search{
+  display: none;
+}
+@media screen and (min-width: 360px) and (max-width: 1024px){
+  .new-book{
+    display: flex;
+    justify-content: space-between;
+  }
+  .search{
+    display: flex;
+    justify-content: flex-end;
+  }
+  .search > div {
+    width: 85%;
   }
 }
 </style>

@@ -126,6 +126,7 @@ radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1
 }
 .list-item-container{
   grid-column: 1/7;
+  grid-column: 1/-1;
   display: grid;
   grid-template-columns: 1fr 4fr 8fr;
   grid-template-rows: 80px 50px 50px;

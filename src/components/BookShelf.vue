@@ -52,7 +52,7 @@
 </template>
 
 <script setup >
-import {reactive, ref, onMounted, inject} from "vue";
+import {reactive, ref, onMounted, inject, watch} from "vue";
 import { useFetch } from '@vueuse/core'
 import ModalComponent from "../components/ModalComponent.vue"
 import ModalForm from "../components/ModalForm.vue"
@@ -95,6 +95,15 @@ const changeView = (view_mode) => {
     template_view.value = 1
   }
 }
+// si au moins un livre est selectionné
+watch(livresSelectionne , ()=> {
+  if(livresSelectionne.length > 0){
+    emitter.emit('selection')
+  }else {
+    console.log("all unselected ...")
+    emitter.emit('unselection')
+  }
+})
 // ajouter un livre à la liste des livres séléectionnés
 const addToList = (selected) => {
     if(selected.selected){
@@ -276,6 +285,8 @@ emitter.on('deleteall', () => {
     console.log(id)
     supprimerLivre(id)
   })
+  // vider la liste des livres supprimés
+  livresSelectionne.splice(0, livresSelectionne.length)
   reloadBooks()
 })
 </script>

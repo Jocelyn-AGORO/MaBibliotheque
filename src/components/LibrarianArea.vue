@@ -5,7 +5,7 @@
     <div>
       Actions :
     </div>
-    <div class="actions">
+    <div class="actions" v-if="selection">
         <div class="action">
             <IconMinus @click="decrementall" />
         </div>
@@ -38,6 +38,7 @@ const livre = reactive({
   prix: 1
 })
 
+const selection =  ref(false)
 const ontype = () => {
   console.log(livre)
 }
@@ -67,7 +68,12 @@ const incrementall =  () => {
 const decrementall =  () => {
   emitter.emit('decrementall')
 }
-
+emitter.on('selection', ()=> {
+  selection.value = true;
+})
+emitter.on('unselection', ()=> {
+  selection.value = false;
+})
 </script>
 
 <style scoped>
@@ -152,8 +158,8 @@ const decrementall =  () => {
     width: 100%;
     height: 150px;
     border-radius: 15px 15px 0px 0px;
-    -webkit-animation: slide-top 1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-    animation: slide-top 1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    -webkit-animation: slide-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    animation: slide-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
   }
   .action{
     display: flex;
@@ -178,8 +184,8 @@ const decrementall =  () => {
   width: 325px;
   height: 150px;
   border-radius: 15px;
-  -webkit-animation: slide-left 1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-  animation: slide-left 1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  -webkit-animation: slide-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  animation: slide-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 .action{
   display: flex;

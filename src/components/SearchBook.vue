@@ -30,7 +30,6 @@ const typing = () => {
 
 const sendSearch = () => {
   emitter.emit('search', recherche.value)
-  console.log(recherche.value)
 }
 
 </script>

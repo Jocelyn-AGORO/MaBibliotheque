@@ -5,8 +5,8 @@
         {{displayTitle}}
       </div>
     </div>
-    <div class="list-item-container" v-else >
-      <input class="check" type="checkbox" name="id">
+    <div :class="isSelected ? 'list-item-container selected' : 'list-item-container'" v-else >
+      <input v-model="isSelected" class="check" type="checkbox" name="id" @change="$emit('action', {id: livre.id, selected: isSelected})">
       <div class="book-list">
         {{livre.titre}}
       </div>
@@ -23,7 +23,7 @@
 </template>
 
 <script setup >
-import {defineProps, onMounted, computed, inject} from "vue"
+import {defineProps, onMounted, computed, inject, ref} from "vue"
 
 const emitter = inject('emitter')
 
@@ -31,6 +31,7 @@ const props = defineProps(["livre", "layout"])
 
 const title = props.livre.titre
 
+const isSelected = ref(false)
 // Lorsque le titre du livre est trop long, n'aficher que 40 caractères
 const displayTitle = computed( () => {
       return title.length > 35 ? title.substr(0, 35) + " ... ": title
@@ -40,7 +41,7 @@ const displayTitle = computed( () => {
 onMounted( () => {
    console.log(props.layout)
  })
-const emit = defineEmits(['selected', 'delete', 'decrement', 'increment'])
+const emit = defineEmits(['selected', 'delete', 'decrement', 'increment', 'action'])
 // supprimet un livre
 const supprimerLivre = () => {
   console.log(props.livre)
@@ -140,6 +141,7 @@ radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1
   margin: 0px 20px;
   width: 32px;
   height: 32px;
+  outline: 0px solid;
 }
 .title{
   text-align: left;
@@ -170,5 +172,9 @@ radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1
   text-align: center;
   height: 20px;
   width: 20px;
+}
+.selected{
+  background-color: rgba(108, 106, 106, 0.45);
+  height: 100%;
 }
 </style>

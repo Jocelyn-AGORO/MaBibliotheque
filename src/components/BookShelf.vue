@@ -17,7 +17,7 @@
       <IconList @click="changeView('list')" />
       <IconGrid @click="changeView('grid')" />
     </div>
-    <div class="shelf" >
+    <div class="shelf" v-if="isEmpty">
         <BookComponent v-for="livre of livres"
                        :key="livre.id"
                        :livre="livre"
@@ -26,12 +26,18 @@
                        @selected="selectedItem(livre)"
                        @delete="deleteBook"
                        @decrement="updateQuantite"
-                       @increment="incrementQuantite"/>
+                       @increment="incrementQuantite"
+                       @action="addToList"/>
         <div v-if="isLoading">
-          Chargement des livres
+          Chargement des livres ...
         </div>
-      <div v-if="!isFound">
+      <div class="no-matches" v-if="!isFound">
         Aucun Livre ne correspond à cette recherche
+      </div>
+    </div>
+    <div class="empty-library" v-else>
+      <div>
+        <button @click="isMedium=true">Nouveau Livre</button>
       </div>
     </div>
     <ModalComponent v-if="isOpen"
@@ -64,6 +70,8 @@ const layout = ref('grid')
 const template_view = ref(6)
 // livre selectionné
 let livreSelected = reactive({})
+// si il n'y a plus aucun livre
+const isEmpty = ref(false)
 // si le modal est visible
 const isOpen = ref(false)
 // si le support a un écran de taille moyenne
@@ -71,9 +79,11 @@ const isMedium = ref(false)
 // liste des livres
 const livres = reactive([])
 // si les données sont en chargement
-const isLoading = ref(false);
+const isLoading = ref(true);
 // si la recherche retourne des livres
-const isFound = ref(false);
+const isFound = ref(true);
+// les livres sélectionnés
+const livresSelectionne =  reactive([]);
 // inject the global emitter
 const emitter = inject('emitter')
 // changer les modes d'affichage
@@ -84,6 +94,17 @@ const changeView = (view_mode) => {
   }else {
     template_view.value = 1
   }
+}
+// ajouter un livre à la liste des livres séléectionnés
+const addToList = (selected) => {
+    if(selected.selected){
+      livresSelectionne.push(selected.id)
+    } else {
+      const index = livresSelectionne.indexOf(selected.id)
+      livresSelectionne.splice(index, 1)
+      console.log(livresSelectionne)
+    }
+    console.log(selected, livresSelectionne)
 }
 // Ouvrir le modal
 const toggleModal = (livre) =>{
@@ -114,8 +135,9 @@ const loadBooks = () => {
       })
     }
   })
-  isLoading.value = isFetching;
-  console.log(isLoading)
+  isLoading.value = isFetching.value;
+  isEmpty.value = livres.length === 0// isFound.value = livres.length === 0
+  console.log(error.value)
 }
 // charger la liste des livres
 const reloadBooks = () => {
@@ -146,13 +168,14 @@ const actualSearch = (motcle) => {
     afterFetch(ctx) {
       const data = JSON.parse(ctx.data)
       console.log(data)
-      isFound.value = data.length === 0
       // supprimer l'ancien contenu
       livres.splice(0, livres.length)
       // remettre les livre correspondant à la recherche
       data.map((livre) =>{
         livres.push(livre)
       })
+      isFound.value = ( livres.length !== 0 )
+      console.log(isFound.value, data.length, ctx)
     }
   })
 }
@@ -167,6 +190,18 @@ const deleteBook = () => {
   })
   // refermer le modal
   isOpen.value = false
+  console.log(livres)
+  // recharger la bibliothèque
+  setTimeout(()=> { reloadBooks() }, 125)
+  console.log(livres)
+}
+const supprimerLivre = (id) => {
+  const headers = new Headers()
+  headers.append("Content-Type", "application/json")
+  const { isFetching, error, data } = useFetch(url+`/${id}`, {
+    method: "DELETE",
+    headers: headers
+  })
   console.log(livres)
   // recharger la bibliothèque
   setTimeout(()=> { reloadBooks() }, 125)
@@ -234,6 +269,15 @@ emitter.on('search', actualSearch)
 emitter.on('addbook', () => {
   setTimeout(reloadBooks, 125)
 })
+// supprimer plusieurs livres
+emitter.on('deleteall', () => {
+  console.log('Deleting all selected ...')
+  livresSelectionne.map((id) =>{
+    console.log(id)
+    supprimerLivre(id)
+  })
+  reloadBooks()
+})
 </script>
 
 <style scoped>
@@ -246,6 +290,7 @@ emitter.on('addbook', () => {
   padding: 10px;
   overflow-y: scroll;
   max-width: 100%;
+  color: #e7e2e2;
 }
 
 @media screen and (min-width: 768px) and (min-width: 1024px) {
@@ -349,6 +394,18 @@ emitter.on('addbook', () => {
 }
 .search{
   display: none;
+}
+.empty-library{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+.no-matches{
+  text-align: center;
+  height: 100%;
+  width: 100%;
 }
 @media screen and (min-width: 360px) and (max-width: 1024px){
   .new-book{

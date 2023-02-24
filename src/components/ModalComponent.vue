@@ -103,6 +103,37 @@ const incrementQuantite = () => {
     z-index: 100;
   }
 }
+@media screen and (min-width: 360px) and (max-width: 486px) {
+  .modal{
+    --width: 350px;
+    --height: 270px;
+    /*margin: auto;*/
+    position: relative;
+    width: var(--width);
+    height: var(--height);
+    border-radius: 15px;
+    background-color: #424242;
+    color: #868686;
+    z-index: 100;
+  }
+  .title{
+    text-align: left;
+    font-size: 10px;
+    grid-column: 2/3;
+    font-family: Ananda;
+    padding: 10px;
+    margin-left: 5px;
+    color: #e8e3e3;
+  }
+  .price{
+    font-weight: bold;
+    font-size: 15px;
+    grid-column: 2/3;
+    padding-top: 50px;
+    margin-left: 5px;
+    color: #E8E3E3FF;
+  }
+}
 .book{
   font-family: Ananda;
   display: flex;
